@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Productos y Entidades - MongoDB Atlas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            color: #fff;
+        }
+
+        body {
+            width: 100vw;
+            min-height: 100vh;
+            background: #081b29;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+        }
+
+        ::-webkit-input-placeholder {
+            color: #eee;
+        }
+
+        ::-moz-placeholder {
+            color: #eee;
+        }
+
+        :-ms-input-placeholder {
+            color: #eee;
+        }
+
+        ::placeholder {
+            color: #eee;
+        }
+
+        header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .nav-buttons button {
+            width: 150px;
+            font-size: 18px;
+            padding: 10px 0;
+            border-radius: 40px;
+            background: linear-gradient(45deg, #0ef, #c800ff);
+            border: none;
+            cursor: pointer;
+            transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .nav-buttons button:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-buttons button:active {
+            transform: scale(0.95);
+        }
+
+        .nav-buttons button.active {
+            background: linear-gradient(45deg, #00ff00, #00c4ff);
+            box-shadow: 0 0 15px #00ff00, 0 0 30px #00c4ff;
+            animation: glow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px #00ff00, 0 0 20px #00c4ff;
+            }
+            to {
+                box-shadow: 0 0 20px #00ff00, 0 0 40px #00c4ff;
+            }
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .user-actions button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 40px;
+            border: 2px solid #0ef;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .user-actions button:hover {
+            background: #0ef;
+            color: #081b29;
+        }
+
+        .user-actions button i {
+            font-size: 18px;
+        }
+
+        .wrapper {
+            position: relative;
+            width: 95vw;
+            max-width: 1200px;
+            border: 3px solid #00ffff;
+            box-shadow: 0 0 50px 0 #00a6bc;
+            display: flex;
+            flex-direction: column;
+            height: auto;
+            min-height: 60vh;
+        }
+
+        #register-section.active .wrapper,
+        #login-section.active .wrapper {
+            max-width: 350px;
+        }
+
+        #register-section.active .form,
+        #login-section.active .form {
+            padding: 20px;
+        }
+
+        #register-section.active .title,
+        #login-section.active .title {
+            font-size: 24px;
+        }
+
+        #register-section.active .inp input,
+        #login-section.active .inp input {
+            font-size: 16px;
+        }
+
+        #register-section.active .header .wel_text,
+        #login-section.active .header .wel_text {
+            font-size: 36px;
+            line-height: 40px;
+        }
+
+        #register-section.active .header .para,
+        #login-section.active .header .para {
+            font-size: 16px;
+            line-height: 20px;
+        }
+
+        #productos-section.active .form,
+        #entidades-section.active .form,
+        #cloudwords-section.active .form,
+        #lemmatize-section.active .form,
+        #rpa-section.active .form {
+            padding: 50px;
+        }
+
+        #productos-section.active .title,
+        #entidades-section.active .title,
+        #cloudwords-section.active .title,
+        #lemmatize-section.active .title,
+        #rpa-section.active .title {
+            font-size: 36px;
+        }
+
+        #productos-section.active .inp input,
+        #entidades-section.active .inp input,
+        #productos-section.active .inp textarea,
+        #entidades-section.active .inp textarea,
+        #cloudwords-section.active .inp input,
+        #cloudwords-section.active .inp textarea,
+        #lemmatize-section.active .inp input,
+        #lemmatize-section.active .inp textarea,
+        #rpa-section.active .inp input,
+        #rpa-section.active .inp textarea {
+            font-size: 22px;
+        }
+
+        #productos-section.active .header .wel_text,
+        #entidades-section.active .header .wel_text,
+        #cloudwords-section.active .header .wel_text,
+        #lemmatize-section.active .header .wel_text,
+        #rpa-section.active .header .wel_text {
+            font-size: 52px;
+            line-height: 56px;
+        }
+
+        #productos-section.active .header .para,
+        #entidades-section.active .header .para,
+        #cloudwords-section.active .header .para,
+        #lemmatize-section.active .header .para,
+        #rpa-section.active .header .para {
+            font-size: 22px;
+            line-height: 26px;
+        }
+
+        .header {
+            background: linear-gradient(to right, #0ef, #c800ff);
+            clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header .wel_text {
+            font-size: 48px;
+            line-height: 50px;
+        }
+
+        .header .para {
+            margin-top: 10px;
+            font-size: 20px;
+            line-height: 24px;
+            letter-spacing: 1px;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            height: auto;
+            min-height: 300px;
+        }
+
+        #productos-section .form, 
+        #entidades-section .form,
+        #cloudwords-section .form,
+        #lemmatize-section .form,
+        #rpa-section .form {
+            justify-content: start;
+        }
+
+        .title {
+            font-size: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .inp {
+            position: relative;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        .inp input, .inp textarea, .inp select {
+            border: none;
+            outline: none;
+            background: none;
+            width: 100%;
+            padding-right: 40px;
+            font-size: 18px;
+            color: #0ef;
+        }
+
+        .inp textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .inp i {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #0ef;
+            font-size: 18px;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px 0;
+            font-size: 20px;
+            border-radius: 40px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            background: linear-gradient(45deg, #0ef, #c800ff);
+            transition: transform 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button.back {
+            background: transparent;
+            border: 2px solid #0ef;
+            margin-top: 25px;
+            width: 300px;
+            font-size: 22px;
+        }
+
+        button.back:hover {
+            background: #0ef;
+            color: #081b29;
+        }
+
+        .footer {
+            margin-top: 30px;
+            letter-spacing: 0.5px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .link {
+            color: #0ef;
+            text-decoration: none;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        .content-section {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            height: auto;
+        }
+
+        .content-section.active {
+            display: flex;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            margin-top: 15px;
+            font-size: 16px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .alert-success {
+            color: #27ae60;
+        }
+
+        .alert-error {
+            color: #e74c3c;
+        }
+
+        #productos-list, #entidades-list {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .producto-card, .entidad-chip {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .entidad-chip {
+            background: none;
+            padding: 0;
+        }
+
+        .entidad-chip > div {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-top: none;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .entidad-chip > button.back {
+            grid-column: 1 / -1;
+            width: 100%;
+            max-width: 300px;
+            margin: 20px auto 0;
+        }
+
+        .producto-card p, .entidad-chip p {
+            margin: 8px 0;
+            font-size: 18px;
+        }
+
+        .producto-card strong, .entidad-chip strong {
+            color: #0ef;
+        }
+
+        .producto-card small, .entidad-chip small {
+            color: #eee;
+            font-size: 16px;
+        }
+
+        .producto-card button, .entidad-chip button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            width: 100%;
+        }
+
+        .entidad-chip > span {
+            font-size: 22px;
+            font-weight: 500;
+            color: #0ef;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .product-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            padding: 50px;
+            width: 100%;
+            height: auto;
+            align-items: start;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            width: 100%;
+        }
+
+        .create-product, .list-products, .create-entity, .list-entities, .scrape-section {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid #00ffff;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .list-products #productos-list, .list-entities #entidades-list {
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .create-product .inp,
+        .list-products .inp,
+        .create-entity .inp,
+        .list-entities .inp,
+        .scrape-section .inp,
+        .create-product button,
+        .list-products button,
+        .create-entity button,
+        .list-entities button,
+        .scrape-section button {
+            width: 100%;
+            max-width: none;
+        }
+
+        .list-products .alert, .list-entities .alert, .scrape-section .alert {
+            width: 100%;
+            max-width: none;
+        }
+
+        .tabs-container {
+            display: flex;
+            width: 100%;
+            margin-top: 20px;
+            gap: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 200px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #0ef;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #0ef, #c800ff);
+            border-color: #00ff00;
+            box-shadow: 0 0 10px #0ef;
+        }
+
+        .tabs-content {
+            flex: 1;
+            width: 100%;
+        }
+
+        .tab-content {
+            display: none;
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .tab-content.active {
+            display: grid;
+        }
+
+        @media (max-width: 768px) {
+            .tabs-container {
+                flex-direction: column;
+            }
+
+            .tabs {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .tab {
+                flex: 0 0 auto;
+            }
+
+            .tabs-content {
+                width: 100%;
+            }
+
+            .tab-content {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+
+            .product-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        #main-nav {
+            display: none;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header id="main-nav">
+        <div class="nav-buttons">
+            <button id="productos-btn" onclick="showSection('productos')">Productos</button>
+            <button id="entidades-btn" onclick="showSection('entidades')">Entidades</button>
+            <button id="scraping-btn" onclick="showSection('scraping')">Scraping</button>
+            <button id="cloudwords-btn" onclick="showSection('cloudwords')">Nube Palabras</button>
+            <button id="lemmatize-btn" onclick="showSection('lemmatize')">Lematización</button>
+            <button id="rpa-btn" onclick="showSection('rpa')">RPA</button>
+ 
+    </div>
+        <div class="user-actions">
+            <button id="profile-btn"><i class="fa-solid fa-user"></i> Admin</button>
+            <button onclick="logout()"><i class="fa-solid fa-sign-out-alt"></i> Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <div class="wrapper">
+        <div id="register-section" class="content-section">
+            <div class="header">
+                <h1 class="wel_text">BIENVENIDO</h1>
+                <p class="para">Gestión de Productos<br />y Entidades<br />MongoDB Atlas</p>
+            </div>
+            <form class="form">
+                <h1 class="title">Registro</h1>
+                <div class="inp">
+                    <input type="email" id="register-email" class="input" placeholder="Email">
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <div class="inp">
+                    <input type="password" id="register-password" class="input" placeholder="Contraseña">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <button type="button" onclick="register()">Registrar</button>
+                <p class="footer">¿Ya tienes una cuenta? <a href="#" class="link" onclick="showSection('login'); return false;">Inicia Sesión</a></p>
+                <div id="register-result" class="alert"></div>
+            </form>
+        </div>
+
+        <div id="login-section" class="content-section">
+            <div class="header">
+                <h1 class="wel_text">BIENVENIDO</h1>
+                <p class="para">Gestión de Productos<br />y Entidades<br />MongoDB Atlas</p>
+            </div>
+            <form class="form">
+                <h1 class="title">Inicio</h1>
+                <div class="inp">
+                    <input type="email" id="login-email" class="input" placeholder="Email" required>
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <div class="inp">
+                    <input type="password" id="login-password" class="input" placeholder="Contraseña" required>
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <button type="button" onclick="login()">Iniciar Sesión</button>
+                <button type="button" class="back" onclick="showSection('register')">Regresar</button>
+                <p class="footer">¿No tienes una cuenta? <a href="#" class="link" onclick="showSection('register'); return false;">Regístrate</a></p>
+                <div id="login-result" class="alert"></div>
+            </form>
+        </div>
+
+        <div id="productos-section" class="content-section">
+            <div class="header">
+                <h1 class="wel_text">PRODUCTOS</h1>
+                <p class="para">Gestión de Productos<br />y Entidades<br />MongoDB Atlas</p>
+            </div>
+            <div class="form product-columns">
+                <div class="column create-product">
+                    <h1 class="title">Crear Producto</h1>
+                    <div class="inp">
+                        <input type="text" id="create-product-name" class="input" placeholder="Nombre">
+                    </div>
+                    <div class="inp">
+                        <textarea id="create-product-description" class="input" placeholder="Descripción (opcional)"></textarea>
+                    </div>
+                    <div class="inp">
+                        <input type="number" id="create-product-price" step="0.01" min="0" class="input" placeholder="Precio">
+                    </div>
+                    <button type="button" onclick="createProducto()">Crear Producto</button>
+                    <div id="create-product-result" class="alert"></div>
+                </div>
+                <div class="column list-products">
+                    <h1 class="title">Lista de Productos</h1>
+                    <button type="button" class="back" onclick="initializeProductosTabs()">Actualizar</button>
+                    <div class="tabs-container">
+                        <div class="tabs" id="productos-tabs"></div>
+                        <div class="tabs-content" id="productos-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="entidades-section" class="content-section">
+            <div class="header">
+                <h1 class="wel_text">ENTIDADES</h1>
+                <p class="para">Gestión de Productos<br />y Entidades<br />MongoDB Atlas</p>
+            </div>
+            <div class="form product-columns">
+                <div class="column create-entity">
+                    <h1 class="title">Crear Entidad</h1>
+                    <div class="inp">
+                        <input type="text" id="entity-collection" class="input" placeholder="Colección">
+                    </div>
+                    <div class="inp">
+                        <input type="text" id="entity-name" class="input" placeholder="Nombre del Registro">
+                    </div>
+                    <div class="inp">
+                        <textarea id="create-entity-description" class="input" placeholder="Descripción (opcional)"></textarea>
+                    </div>
+                    <button type="button" onclick="createEntidad()">Crear Registro</button>
+                    <div id="create-entity-result" class="alert"></div>
+                </div>
+                <div class="column list-entities">
+                    <h1 class="title">Lista de Entidades</h1>
+                    <button type="button" class="back" onclick="getEntidades()">Actualizar Lista</button>
+                    <div class="tabs-container">
+                        <div class="tabs" id="entidades-tabs"></div>
+                        <div class="tabs-content" id="entidades-list"></div>
+                    </div>
+                </div>
+               
+            </div>
+        </div>
+
+        <!-- NUEVAS SECCIONES -->
+                <div id="scraping-section" class="content-section">
+                <div class="header">
+                    <h1 class="wel_text">SCRAPING DE DATOS</h1>
+                    <p class="para">Extracción de Información<br />de Sitios Web<br />MongoDB Atlas</p>
+                </div>
+                <div class="form">
+                    <div class="create-product" style="width: 100%; max-width: 800px; margin: 0 auto;">
+                        <h1 class="title">Scraping de Datos</h1>
+                        <div class="inp">
+                            <input type="text" id="scrape-url" class="input" placeholder="URL a scrapear">
+                        </div>
+                        <button type="button" onclick="scrapeWebsite()">Scrapear y Descargar</button>
+                        <div id="scrape-result" class="alert"></div>
+                    </div>
+                </div>
+            </div>
+
+
+
+                <div id="cloudwords-section" class="content-section">
+                <div class="header">
+                    <h1 class="wel_text">NUBE DE PALABRAS</h1>
+                    <p class="para">Análisis de Textos<br />y Colecciones<br />MongoDB Atlas</p>
+                </div>
+                <div class="form">
+                    <div class="create-product" style="width: 100%; max-width: 800px; margin: 0 auto;">
+                        <h1 class="title">Generar Nube de Palabras</h1>
+                        <div class="inp">
+                            <textarea id="cloudwords-text" class="input" placeholder="Escribe o pega el texto para analizar" rows="8"></textarea>
+                        </div>
+                        <button type="button" onclick="generateWordcloud()">Generar Nube de Palabras</button>
+                        <div id="cloudwords-result" class="alert"></div>
+                        <div id="cloudwords-result-container"></div>
+                    </div>
+                </div>
+            </div>
+
+        <div id="lemmatize-section" class="content-section">
+    <div class="header">
+        <h1 class="wel_text">LEMATIZACIÓN</h1>
+        <p class="para">Análisis de Textos<br />MongoDB Atlas</p>
+    </div>
+    <div class="form">
+        <div class="create-product" style="width: 100%; max-width: 800px; margin: 0 auto;">
+            <h1 class="title">Lematizar Texto</h1>
+            <div class="inp">
+                <textarea id="lemmatize-text" class="input" placeholder="Escribe o pega el texto para lematizar" rows="6"></textarea>
+            </div>
+            <div class="inp">
+                <select id="lemmatize-language" class="input">
+                    <option value="spanish">Español</option>
+                    <option value="english">Inglés</option>
+                </select>
+            </div>
+            <div style="display: flex; align-items: center; margin-bottom: 20px;">
+                <input type="checkbox" id="lemmatize-remove-stopwords" checked style="margin-right: 10px; width: auto;">
+                <label for="lemmatize-remove-stopwords" style="color: #0ef;">Eliminar stopwords</label>
+            </div>
+            <button type="button" onclick="lemmatizeText()">Lematizar Texto</button>
+            <div id="lemmatize-result" class="alert"></div>
+            <div id="lemmatize-result-container"></div>
+        </div>
+    </div>
+</div>
+               
+                    
+                    
+                </div>
+            </div>
+        </div>
+
+      <!-- Reemplaza el contenido de la sección RPA en cliente-api.html con este código -->
+<div id="rpa-section" class="content-section">
+    <div class="header">
+        <h1 class="wel_text">AUTOMATIZACIÓN (RPA)</h1>
+        <p class="para">Robotic Process Automation<br />MongoDB Atlas</p>
+    </div>
+    <div class="form">
+        <!-- Una única columna centrada para RPA -->
+        <div class="create-product" style="width: 100%; max-width: 800px; margin: 0 auto;">
+            <h1 class="title">Verificar Dependencias</h1>
+            <button type="button" onclick="checkRPADependencies()">Verificar Dependencias RPA</button>
+            <div id="rpa-result" class="alert"></div>
+            <div id="rpa-dependencies-result"></div>
+            
+            <!-- Nueva sección para automatización de Office -->
+            <h1 class="title" style="margin-top: 40px;">Automatización de Office</h1>
+            
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px;">
+                <div style="flex: 1; min-width: 200px;">
+                    <h3 style="color: #0ef; margin-bottom: 15px;">Seleccionar aplicación</h3>
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <input type="radio" id="office-excel" name="office-app" value="excel" checked style="margin-right: 5px;">
+                            <label for="office-excel" style="color: #0ef;">Excel</label>
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="radio" id="office-word" name="office-app" value="word" style="margin-right: 5px;">
+                            <label for="office-word" style="color: #0ef;">Word</label>
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="radio" id="office-powerpoint" name="office-app" value="powerpoint" style="margin-right: 5px;">
+                            <label for="office-powerpoint" style="color: #0ef;">PowerPoint</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="flex: 1; min-width: 200px;">
+                    <h3 style="color: #0ef; margin-bottom: 15px;">Tipo de acción</h3>
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <input type="radio" id="office-action-open" name="office-action" value="open" checked style="margin-right: 5px;">
+                            <label for="office-action-open" style="color: #0ef;">Abrir</label>
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="radio" id="office-action-create" name="office-action" value="create" style="margin-right: 5px;">
+                            <label for="office-action-create" style="color: #0ef;">Crear</label>
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="radio" id="office-action-edit" name="office-action" value="edit" style="margin-right: 5px;">
+                            <label for="office-action-edit" style="color: #0ef;">Editar</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="inp">
+                <input type="text" id="office-file-path" class="input" placeholder="Ruta del archivo (dejar vacío para nuevo)">
+            </div>
+            
+            <div id="office-action-parameters" style="margin-top: 20px;">
+                <!-- Esta sección cambiará dinámicamente según la aplicación seleccionada -->
+                <div id="excel-parameters">
+                    <div class="inp">
+                        <input type="text" id="excel-sheet-name" class="input" placeholder="Nombre de la hoja (por defecto: Sheet1)">
+                    </div>
+                    <div class="inp">
+                        <textarea id="excel-data" class="input" placeholder="Datos para importar (CSV o JSON)" rows="4"></textarea>
+                    </div>
+                </div>
+                
+                <div id="word-parameters" style="display: none;">
+                    <div class="inp">
+                        <textarea id="word-content" class="input" placeholder="Contenido para el documento" rows="4"></textarea>
+                    </div>
+                    <div class="inp">
+                        <input type="text" id="word-template" class="input" placeholder="Ruta de la plantilla (opcional)">
+                    </div>
+                </div>
+                
+                <div id="powerpoint-parameters" style="display: none;">
+                    <div class="inp">
+                        <input type="text" id="powerpoint-title" class="input" placeholder="Título de la presentación">
+                    </div>
+                    <div class="inp">
+                        <textarea id="powerpoint-slides" class="input" placeholder="Slides (una por línea: Título|Contenido)" rows="4"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" onclick="executeOfficeAutomation()">Ejecutar Automatización de Office</button>
+            <div id="office-automation-result" class="alert"></div>
+            
+            <h1 class="title" style="margin-top: 40px;">Entrada de Datos Automatizada</h1>
+            <div class="inp">
+                <input type="text" id="rpa-collection-name" class="input" placeholder="Nombre de la colección">
+            </div>
+            <div class="inp">
+                <input type="text" id="rpa-data-source" class="input" placeholder="URL o ruta de archivo">
+            </div>
+            <button type="button" onclick="executeDataEntry()">Ejecutar Entrada de Datos</button>
+            <div id="rpa-data-entry-result" class="alert"></div>
+            
+            <h1 class="title" style="margin-top: 40px;">Sincronización de Datos</h1>
+            <div class="inp">
+                <input type="text" id="rpa-source-collection" class="input" placeholder="Colección o URL de origen">
+            </div>
+            <div class="inp">
+                <input type="text" id="rpa-target-collection" class="input" placeholder="Colección destino">
+            </div>
+            <div class="inp">
+                <input type="number" id="rpa-sync-interval" class="input" placeholder="Intervalo (minutos)" value="60">
+            </div>
+            <button type="button" onclick="scheduleDataSync()">Programar Sincronización</button>
+            <div id="rpa-data-sync-result" class="alert"></div>
+        </div>
+    </div>
+</div>
+    </div>
+
+    <script>
+        const API_BASE_PRODUCTOS = "http://127.0.0.1:8000/productos";
+        const API_BASE_ENTIDADES = "http://127.0.0.1:8000/entidades";
+        let accessToken = localStorage.getItem('accessToken') || null;
+
+
+        
+        function generateSafeId(name) {
+            return name
+                .toLowerCase()
+                .replace(/\s+/g, '-') // Reemplazar espacios por guiones
+                .replace(/[^a-z0-9-]/g, ''); // Eliminar caracteres no alfanuméricos
+        }
+
+        function showAlert(elementId, message, type = 'success') {
+            const element = document.getElementById(elementId);
+            element.innerHTML = message;
+            element.className = `alert alert-${type}`;
+            setTimeout(() => element.innerHTML = '', 5000);
+        }
+
+        function showTab(section, tabId) {
+            console.log(`showTab called with section: ${section}, tabId: ${tabId}`);
+            const tabs = document.querySelectorAll(`#${section}-tabs .tab`);
+            const contents = document.querySelectorAll(`#${section}-list .tab-content`);
+
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+
+            const selectedTab = Array.from(tabs).find(tab => tab.getAttribute('data-tab-id') === tabId);
+            const selectedContent = document.getElementById(tabId);
+
+            if (selectedTab && selectedContent) {
+                selectedTab.classList.add('active');
+                selectedContent.classList.add('active');
+                console.log(`Tab ${tabId} activated successfully`);
+            } else {
+                console.error(`Tab or content not found for tabId: ${tabId}`);
+            }
+        }
+
+        function showSection(section) {
+        const registerSection = document.getElementById('register-section');
+        const loginSection = document.getElementById('login-section');
+        const productosSection = document.getElementById('productos-section');
+        const entidadesSection = document.getElementById('entidades-section');
+        const cloudwordsSection = document.getElementById('cloudwords-section');
+        const lemmatizeSection = document.getElementById('lemmatize-section');
+        const rpaSection = document.getElementById('rpa-section');
+        const scrapingSection = document.getElementById('scraping-section');
+        
+        const productosBtn = document.getElementById('productos-btn');
+        const entidadesBtn = document.getElementById('entidades-btn');
+        const cloudwordsBtn = document.getElementById('cloudwords-btn');
+        const lemmatizeBtn = document.getElementById('lemmatize-btn');
+        const rpaBtn = document.getElementById('rpa-btn');
+        const scrapingBtn = document.getElementById('scraping-btn');
+        
+        productosBtn.classList.remove('active');
+        entidadesBtn.classList.remove('active');
+        cloudwordsBtn.classList.remove('active');
+        lemmatizeBtn.classList.remove('active');
+        rpaBtn.classList.remove('active');
+        scrapingBtn.classList.remove('active');
+
+        registerSection.classList.remove('active');
+        loginSection.classList.remove('active');
+        productosSection.classList.remove('active');
+        entidadesSection.classList.remove('active');
+        cloudwordsSection.classList.remove('active');
+        lemmatizeSection.classList.remove('active');
+        rpaSection.classList.remove('active');
+        scrapingSection.classList.remove('active');
+        
+        if (section === 'register') {
+            registerSection.classList.add('active');
+        } else if (section === 'login') {
+            loginSection.classList.add('active');
+        } else if (section === 'productos') {
+            productosSection.classList.add('active');
+            productosBtn.classList.add('active');
+            initializeProductosTabs();
+        } else if (section === 'entidades') {
+            entidadesSection.classList.add('active');
+            entidadesBtn.classList.add('active');
+            getEntidades();
+        } else if (section === 'cloudwords') {
+            cloudwordsSection.classList.add('active');
+            cloudwordsBtn.classList.add('active');
+        } else if (section === 'lemmatize') {
+            lemmatizeSection.classList.add('active');
+            lemmatizeBtn.classList.add('active');
+        } else if (section === 'rpa') {
+            rpaSection.classList.add('active');
+            rpaBtn.classList.add('active');
+        } else if (section === 'scraping') {
+            scrapingSection.classList.add('active');
+            scrapingBtn.classList.add('active');
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+            
+
+        async function fetchWithRefresh(url, options = {}) {
+            options.headers = options.headers || {};
+            options.headers['Authorization'] = `Bearer ${accessToken}`;
+            
+            try {
+                const response = await fetch(url, options);
+                if (response.status === 401) {
+                    const refreshed = await refreshAccessToken();
+                    if (refreshed) {
+                        options.headers['Authorization'] = `Bearer ${accessToken}`;
+                        return await fetch(url, options);
+                    }
+                    throw new Error('No se pudo renovar el token');
+                }
+                return response;
+            } catch (error) {
+                throw error;
+            }
+        }
+
+        async function checkUser() {
+            if (!accessToken) {
+                showSection('register');
+                document.getElementById('main-nav').style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetchWithRefresh('http://127.0.0.1:8000/users/me');
+                if (!response.ok) throw new Error(await response.text());
+                const user = await response.json();
+                document.getElementById('main-nav').style.display = 'flex';
+                document.getElementById('profile-btn').innerHTML = `<i class="fa-solid fa-user"></i> ${user.email.split('@')[0]}`;
+                showSection('productos');
+            } catch (error) {
+                console.error('Error al verificar usuario:', error);
+                logout();
+            }
+        }
+
+        // Añadir estas funciones al archivo JavaScript
+
+// Función para cambiar los parámetros según la aplicación seleccionada
+document.addEventListener('DOMContentLoaded', function() {
+    // Solo ejecutar si estamos en la sección RPA (verificar si los elementos existen)
+    if (document.getElementById('office-app')) {
+        // Agregar event listeners para los radio buttons de aplicaciones
+        const officeAppRadios = document.querySelectorAll('input[name="office-app"]');
+        officeAppRadios.forEach(radio => {
+            radio.addEventListener('change', updateOfficeParameters);
+        });
+        
+        // Event listeners para cambiar opciones basadas en tipo de acción
+        const officeActionRadios = document.querySelectorAll('input[name="office-action"]');
+        officeActionRadios.forEach(radio => {
+            radio.addEventListener('change', updateOfficeParameters);
+        });
+        
+        // Actualizar parámetros iniciales
+        updateOfficeParameters();
+    }
+});
+
+function updateOfficeParameters() {
+    // Obtener la aplicación seleccionada
+    const selectedApp = document.querySelector('input[name="office-app"]:checked').value;
+    const selectedAction = document.querySelector('input[name="office-action"]:checked').value;
+    
+    // Ocultar todos los conjuntos de parámetros
+    document.getElementById('excel-parameters').style.display = 'none';
+    document.getElementById('word-parameters').style.display = 'none';
+    document.getElementById('powerpoint-parameters').style.display = 'none';
+    
+    // Mostrar los parámetros correspondientes a la aplicación seleccionada
+    document.getElementById(`${selectedApp}-parameters`).style.display = 'block';
+    
+    // Ajustar placeholder del campo de ruta según la acción
+    const filePathInput = document.getElementById('office-file-path');
+    if (selectedAction === 'open' || selectedAction === 'edit') {
+        filePathInput.placeholder = 'Ruta del archivo (obligatorio)';
+        filePathInput.required = true;
+    } else {
+        filePathInput.placeholder = 'Ruta donde guardar (opcional)';
+        filePathInput.required = false;
+    }
+}
+
+// Función para ejecutar la automatización de Office
+async function executeOfficeAutomation() {
+    // Obtener los valores de los campos
+    const selectedApp = document.querySelector('input[name="office-app"]:checked').value;
+    const selectedAction = document.querySelector('input[name="office-action"]:checked').value;
+    const filePath = document.getElementById('office-file-path').value.trim();
+    
+    // Validación básica
+    if ((selectedAction === 'open' || selectedAction === 'edit') && !filePath) {
+        showAlert('office-automation-result', 'La ruta del archivo es obligatoria para abrir o editar', 'error');
+        return;
+    }
+    
+    // Recopilar parámetros específicos de la aplicación
+    let params = {
+        app: selectedApp,
+        action: selectedAction,
+        file_path: filePath
+    };
+    
+    // Recopilar parámetros adicionales según la aplicación
+    if (selectedApp === 'excel') {
+        params.sheet_name = document.getElementById('excel-sheet-name').value.trim();
+        params.data = document.getElementById('excel-data').value.trim();
+    } else if (selectedApp === 'word') {
+        params.content = document.getElementById('word-content').value.trim();
+        params.template = document.getElementById('word-template').value.trim();
+    } else if (selectedApp === 'powerpoint') {
+        params.title = document.getElementById('powerpoint-title').value.trim();
+        params.slides = document.getElementById('powerpoint-slides').value.trim();
+    }
+    
+    // Mostrar indicador de carga
+    showAlert('office-automation-result', 'Ejecutando automatización...', 'success');
+    
+    try {
+        const response = await fetchWithRefresh('http://127.0.0.1:8000/rpa/office-automation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(params)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+        }
+        
+        const result = await response.json();
+        
+        // Mostrar resultado
+        showAlert('office-automation-result', `Automatización completada: ${result.message}`, 'success');
+        
+        // Mostrar detalles si existen
+        if (result.details) {
+            const detailsDiv = document.createElement('div');
+            detailsDiv.classList.add('producto-card');
+            detailsDiv.style.marginTop = '15px';
+            detailsDiv.innerHTML = `
+                <h3>Detalles de la ejecución:</h3>
+                <pre style="white-space: pre-wrap; font-family: monospace; color: #ddd; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; max-height: 300px; overflow-y: auto;">${result.details}</pre>
+            `;
+            
+            const resultContainer = document.getElementById('office-automation-result');
+            resultContainer.parentNode.insertBefore(detailsDiv, resultContainer.nextSibling);
+        }
+    } catch (error) {
+        console.error('Error en automatización de Office:', error);
+        showAlert('office-automation-result', `Error: ${error.message}`, 'error');
+    }
+}
+
+        async function register() {
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value.trim();
+            
+            if (!email || !password) {
+                showAlert('register-result', 'Email y contraseña son requeridos', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                if (!response.ok) throw new Error(await response.text());
+                const result = await response.json();
+                showAlert('register-result', result.mensaje, 'success');
+                showSection('login');
+            } catch (error) {
+                console.error('Error al registrar:', error);
+                showAlert('register-result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            
+            if (!email || !password) {
+                showAlert('login-result', 'Email y contraseña son requeridos', 'error');
+                return;
+            }
+            if (!email.includes('@') || !email.includes('.')) {
+                showAlert('login-result', 'Formato de email inválido', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+                });
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || 'Error desconocido al iniciar sesión');
+                }
+                const data = await response.json();
+                accessToken = data.access_token;
+                localStorage.setItem('accessToken', data.access_token);
+                localStorage.setItem('refreshToken', data.refresh_token);
+                showAlert('login-result', 'Inicio de sesión exitoso', 'success');
+                document.getElementById('main-nav').style.display = 'flex';
+                checkUser();
+            } catch (error) {
+                console.error('Error al iniciar sesión:', error);
+                showAlert('login-result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function refreshAccessToken() {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (!refreshToken) {
+                logout();
+                return false;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/refresh', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+                if (!response.ok) throw new Error(await response.text());
+                const data = await response.json();
+                accessToken = data.access_token;
+                localStorage.setItem('accessToken', data.access_token);
+                localStorage.setItem('refreshToken', data.refresh_token);
+                return true;
+            } catch (error) {
+                console.error('Error al renovar token:', error);
+                logout();
+                return false;
+            }
+        }
+
+        function logout() {
+            accessToken = null;
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            document.getElementById('main-nav').style.display = 'none';
+            showSection('register');
+        }
+
+        async function initializeProductosTabs() {
+            const tabsElement = document.getElementById('productos-tabs');
+            const listElement = document.getElementById('productos-list');
+            listElement.innerHTML = '<p>Selecciona una colección para ver los productos.</p>';
+            tabsElement.innerHTML = '';
+
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_PRODUCTOS}/`, { cache: 'no-store' });
+                if (!response.ok) throw new Error(await response.text());
+                const productos = await response.json();
+
+                if (!Array.isArray(productos) || productos.length === 0) {
+                    tabsElement.innerHTML = '';
+                    listElement.innerHTML = '<p>No hay productos registrados</p>';
+                    return;
+                }
+
+                const productosPorColeccion = {};
+                productos.forEach(p => {
+                    const coleccion = p.coleccion || 'Sin colección';
+                    if (!productosPorColeccion[coleccion]) {
+                        productosPorColeccion[coleccion] = [];
+                    }
+                    productosPorColeccion[coleccion].push(p);
+                });
+
+                let tabsHtml = '';
+                let firstTab = true;
+                for (const coleccion of Object.keys(productosPorColeccion)) {
+                    const safeColeccion = generateSafeId(coleccion);
+                    const tabId = `productos-tab-${safeColeccion}`;
+                    tabsHtml += `<button class="tab ${firstTab ? 'active' : ''}" data-tab-id="${tabId}" onclick="loadProductosTab('${coleccion}', '${tabId}')">${coleccion} (${productosPorColeccion[coleccion].length})</button>`;
+                    firstTab = false;
+                }
+
+                tabsElement.innerHTML = tabsHtml;
+            } catch (error) {
+                console.error('Error al inicializar pestañas de productos:', error);
+                showAlert('productos-list', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadProductosTab(coleccion, tabId) {
+            const listElement = document.getElementById('productos-list');
+            listElement.innerHTML = '<p>Cargando...</p>';
+
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_PRODUCTOS}/`, { cache: 'no-store' });
+                if (!response.ok) throw new Error(await response.text());
+                const productos = await response.json();
+
+                const productosPorColeccion = {};
+                productos.forEach(p => {
+                    const col = p.coleccion || 'Sin colección';
+                    if (!productosPorColeccion[col]) {
+                        productosPorColeccion[col] = [];
+                    }
+                    productosPorColeccion[col].push(p);
+                });
+
+                const items = productosPorColeccion[coleccion] || [];
+                let itemsHtml = items.length > 0 ? '' : '<p>No hay productos en esta colección</p>';
+                items.forEach(p => {
+                    const price = p.price !== undefined ? p.price.toFixed(2) : 'No especificado';
+                    itemsHtml += `
+                        <div class="producto-card">
+                            <div>
+                                <p><strong>Nombre:</strong> ${p.name || 'Sin nombre'}</p>
+                                <p><strong>Descripción:</strong> ${p.description || 'Sin descripción'}</p>
+                                <p><strong>Precio:</strong> $${price}</p>
+                                <p><small>ID: ${p._id || 'Sin ID'}</small></p>
+                            </div>
+                            <div>
+                                <button onclick="editProducto('${p._id}', '${p.name || ''}', '${p.description || ''}', '${p.price || ''}', '${p.coleccion || ''}')">Editar</button>
+                                <button class="back" onclick="deleteProducto('${p._id}', '${p.coleccion || ''}')">Eliminar</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const contentHtml = `
+                    <div id="${tabId}" class="tab-content active">
+                        ${itemsHtml}
+                    </div>
+                `;
+                listElement.innerHTML = contentHtml;
+                showTab('productos', tabId);
+            } catch (error) {
+                console.error('Error al cargar productos:', error);
+                showAlert('productos-list', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function createProducto() {
+            const producto = {
+                name: document.getElementById('create-product-name').value.trim(),
+                description: document.getElementById('create-product-description').value.trim(),
+                price: parseFloat(document.getElementById('create-product-price').value) || 0
+            };
+            
+            if (!producto.name) {
+                showAlert('create-product-result', 'Nombre es requerido', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_PRODUCTOS}/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(producto)
+                });
+                if (!response.ok) throw new Error(await response.text());
+                const result = await response.json();
+                showAlert('create-product-result', `${result.mensaje}`, 'success');
+                document.getElementById('create-product-name').value = '';
+                document.getElementById('create-product-description').value = '';
+                document.getElementById('create-product-price').value = '';
+                initializeProductosTabs();
+            } catch (error) {
+                console.error('Error al crear producto:', error);
+                showAlert('create-product-result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        function editProducto(id, name, description, price, coleccion) {
+            document.getElementById('create-product-name').value = name;
+            document.getElementById('create-product-description').value = description;
+            document.getElementById('create-product-price').value = price === 'No especificado' ? '0' : price;
+            const createButton = document.querySelector('#create-product-result').previousElementSibling;
+            createButton.textContent = 'Actualizar Producto';
+            createButton.onclick = () => updateProducto(id, coleccion);
+        }
+
+        async function updateProducto(id, coleccion) {
+            const producto = {
+                name: document.getElementById('create-product-name').value.trim(),
+                description: document.getElementById('create-product-description').value.trim(),
+                price: parseFloat(document.getElementById('create-product-price').value) || 0
+            };
+            
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_PRODUCTOS}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(producto)
+                });
+                if (!response.ok) throw new Error(await response.text());
+                const result = await response.json();
+                showAlert('create-product-result', `${result.mensaje}`, 'success');
+                document.getElementById('create-product-name').value = '';
+                document.getElementById('create-product-description').value = '';
+                document.getElementById('create-product-price').value = '';
+                const createButton = document.querySelector('#create-product-result').previousElementSibling;
+                createButton.textContent = 'Crear Producto';
+                createButton.onclick = createProducto;
+                initializeProductosTabs();
+            } catch (error) {
+                console.error('Error al actualizar producto:', error);
+                showAlert('create-product-result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteProducto(id, coleccion) {
+            if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+            
+            console.log(`Intentando eliminar producto con ID: ${id} de la colección: ${coleccion}`);
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_PRODUCTOS}/${id}?coleccion=${encodeURIComponent(coleccion || 'productos')}`, {
+                    method: 'DELETE'
+                });
+                const responseData = await response.json();
+                if (!response.ok) {
+                    console.error('Respuesta de error del backend:', responseData);
+                    throw new Error(responseData.detail || 'Error desconocido al eliminar el producto');
+                }
+                
+                console.log('Respuesta del backend:', responseData);
+                showAlert('productos-list', `${responseData.mensaje}`, 'success');
+                initializeProductosTabs();
+            } catch (error) {
+                console.error('Error al eliminar producto:', error.message);
+                showAlert('productos-list', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function getEntidades() {
+            const tabsElement = document.getElementById('entidades-tabs');
+            const listElement = document.getElementById('entidades-list');
+            listElement.innerHTML = '<p>Selecciona una colección para ver las entidades.</p>';
+            tabsElement.innerHTML = '';
+
+            try {
+                const responseColecciones = await fetchWithRefresh(`${API_BASE_ENTIDADES}/`);
+                if (!responseColecciones.ok) throw new Error(await responseColecciones.text());
+                const colecciones = await responseColecciones.json();
+
+                console.log('Colecciones recibidas:', colecciones);
+
+                if (!Array.isArray(colecciones) || colecciones.length === 0) {
+                    tabsElement.innerHTML = '';
+                    listElement.innerHTML = '<p>No hay colecciones registradas</p>';
+                    return;
+                }
+
+                let tabsHtml = '';
+                for (const coleccion of colecciones) {
+                    const responseEntidades = await fetchWithRefresh(`${API_BASE_ENTIDADES}/${coleccion}`);
+                    const entidades = await responseEntidades.json();
+
+                    console.log(`Entidades para ${coleccion}:`, entidades);
+
+                    const safeColeccion = generateSafeId(coleccion);
+                    const tabId = `entidades-tab-${safeColeccion}`;
+                    tabsHtml += `<button class="tab" data-tab-id="${tabId}" onclick="loadEntidadesTab('${coleccion}', '${tabId}')">${coleccion} (${entidades.length})</button>`;
+                }
+
+                tabsElement.innerHTML = tabsHtml;
+            } catch (error) {
+                console.error('Error al obtener colecciones:', error);
+                showAlert('entidades-list', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadEntidadesTab(coleccion, tabId) {
+            const listElement = document.getElementById('entidades-list');
+            listElement.innerHTML = '<p>Cargando...</p>';
+
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_ENTIDADES}/${coleccion}`);
+                if (!response.ok) throw new Error(await response.text());
+                const entidades = await response.json();
+
+                let itemsHtml = entidades.length > 0 ? '' : '<p>No hay entidades en esta colección</p>';
+                entidades.forEach(e => {
+                    itemsHtml += `
+                        <div>
+                            <div>
+                                <p><strong>Nombre:</strong> ${e.name || 'Sin nombre'}</p>
+                                <p><strong>Descripción:</strong> ${e.description || 'Sin descripción'}</p>
+                                <p><small>ID: ${e._id}</small></p>
+                            </div>
+                            <div>
+                                <button onclick="editEntidad('${e._id}', '${e.name || ''}', '${e.description || ''}', '${coleccion}')">Editar</button>
+                                <button class="back" onclick="deleteEntidad('${e._id}', '${coleccion}')">Eliminar</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const contentHtml = `
+                    <div id="${tabId}" class="tab-content active">
+                        <div class="entidad-chip">
+                            ${itemsHtml}
+                            <button class="back" onclick="deleteColeccion('${coleccion}')">Eliminar Colección</button>
+                        </div>
+                    </div>
+                `;
+                listElement.innerHTML = contentHtml;
+                showTab('entidades', tabId);
+            } catch (error) {
+                console.error('Error al cargar entidades:', error);
+                showAlert('entidades-list', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function createEntidad() {
+            const coleccion = document.getElementById('entity-collection').value.trim().toLowerCase();
+            const entidad = {
+                name: document.getElementById('entity-name').value.trim(),
+                description: document.getElementById('create-entity-description').value.trim()
+            };
+            
+            if (!coleccion || !entidad.name) {
+                showAlert('create-entity-result', 'Colección y nombre son requeridos', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_ENTIDADES}/${coleccion}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entidad)
+                });
+                if (!response.ok) throw new Error(await response.text());
+                const result = await response.json();
+                showAlert('create-entity-result', `${result.mensaje}`, 'success');
+                document.getElementById('entity-collection').value = '';
+                document.getElementById('entity-name').value = '';
+                document.getElementById('create-entity-description').value = '';
+                getEntidades();
+            } catch (error) {
+                console.error('Error al crear entidad:', error);
+                showAlert('create-entity-result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        function editEntidad(id, name, description, coleccion) {
+            document.getElementById('entity-collection').value = coleccion;
+            document.getElementById('entity-name').value = name;
+            document.getElementById('create-entity-description').value = description;
+            const createButton = document.querySelector('#create-entity-result').previousElementSibling;
+            createButton.textContent = 'Actualizar Entidad';
+            createButton.onclick = () => updateEntidad(id, coleccion);
+        }
+
+        async function updateEntidad(id, coleccion) {
+            const entidad = {
+                name: document.getElementById('entity-name').value.trim(),
+                description: document.getElementById('create-entity-description').value.trim()
+            };
+            
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_ENTIDADES}/${coleccion}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(entidad)
+                });
+                if (!response.ok) throw new Error(await response.text());
+                const result = await response.json();
+                showAlert('create-entity-result', `${result.mensaje}`, 'success');
+                document.getElementById('entity-collection').value = '';
+                document.getElementById('entity-name').value = '';
+                document.getElementById('create-entity-description').value = '';
+                const createButton = document.querySelector('#create-entity-result').previousElementSibling;
+                createButton.textContent = 'Crear Registro';
+                createButton.onclick = createEntidad;
+                getEntidades();
+            } catch (error) {
+                console.error('Error al actualizar entidad:', error);
+                showAlert('create-entity-result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteEntidad(id, coleccion) {
+            if (!confirm('¿Estás seguro de eliminar esta entidad?')) return;
+
+            console.log(`Intentando eliminar entidad con ID: ${id} de la colección: ${coleccion}`);
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_ENTIDADES}/${coleccion}/${id}`, {
+                    method: 'DELETE'
+                });
+                const responseData = await response.json();
+                if (!response.ok) {
+                    console.error('Respuesta de error del backend:', responseData);
+                    throw new Error(responseData.detail || 'Error desconocido al eliminar la entidad');
+                }
+                
+                console.log('Respuesta del backend:', responseData);
+                showAlert('entidades-list', `${responseData.mensaje}`, 'success');
+                getEntidades();
+            } catch (error) {
+                console.error('Error al eliminar entidad:', error.message);
+                showAlert('entidades-list', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteColeccion(coleccion) {
+            if (!confirm(`¿Estás seguro de eliminar la colección "${coleccion}"?`)) return;
+            
+            try {
+                const response = await fetchWithRefresh(`${API_BASE_ENTIDADES}/${coleccion}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error(await response.text());
+                const result = await response.json();
+                showAlert('entidades-list', `${result.mensaje}`, 'success');
+                getEntidades();
+            } catch (error) {
+                console.error('Error al eliminar colección:', error);
+                showAlert('entidades-list', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function scrapeWebsite() {
+            const url = document.getElementById('scrape-url').value.trim();
+
+            if (!url) {
+                showAlert('scrape-result', 'La URL es requerida', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetchWithRefresh(`http://127.0.0.1:8000/scraping/?url=${encodeURIComponent(url)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) throw new Error(await response.text());
+
+                const blob = await response.blob();
+                const contentDisposition = response.headers.get('Content-Disposition');
+                const filenameMatch = contentDisposition && contentDisposition.match(/filename="(.+)"/);
+                const filename = filenameMatch ? filenameMatch[1] : 'scraped_data.xlsx';
+
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showAlert('scrape-result', 'Datos scrapeados y descargados exitosamente', 'success');
+            } catch (error) {
+                console.error('Error al scrapear:', error);
+                showAlert('scrape-result', `Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Reemplaza esta función en tu cliente-api.html
+async function generateWordcloud() {
+    const text = document.getElementById('cloudwords-text').value.trim();
+    if (!text) {
+        showAlert('cloudwords-result', 'El texto es requerido', 'error');
+        return;
+    }
+    
+    // Mostrar indicador de carga
+    document.getElementById('cloudwords-result').innerHTML = 'Generando nube de palabras...';
+    
+    try {
+        const response = await fetchWithRefresh('http://127.0.0.1:8000/cloudwords/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                text: text,
+                language: "spanish",
+                title: "Nube de Palabras",
+                width: 800,
+                height: 400
+            })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText);
+        }
+        
+        // Convertir la respuesta en un blob de imagen
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        // Crear o actualizar la imagen en el contenedor
+        const resultContainer = document.getElementById('cloudwords-result-container');
+        resultContainer.innerHTML = `
+            <div class="producto-card">
+                <h3>Nube de Palabras Generada</h3>
+                <img src="${url}" alt="Nube de Palabras" style="max-width: 100%; height: auto; margin-top: 10px; border-radius: 8px;">
+                <div style="margin-top: 15px; display: flex; justify-content: space-between;">
+                    <button onclick="downloadImage('${url}', 'nube_palabras.png')" style="width: 48%;">
+                        <i class="fa-solid fa-download"></i> Descargar
+                    </button>
+                    <button onclick="generateNewWordcloud()" class="back" style="width: 48%;">
+                        <i class="fa-solid fa-refresh"></i> Nueva Nube
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        showAlert('cloudwords-result', 'Nube de palabras generada exitosamente', 'success');
+    } catch (error) {
+        console.error('Error al generar nube de palabras:', error);
+        showAlert('cloudwords-result', `Error: ${error.message}`, 'error');
+    }
+}
+
+// Función auxiliar para descargar la imagen
+function downloadImage(url, filename) {
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// Función para generar una nueva nube (limpia el área de resultados)
+function generateNewWordcloud() {
+    document.getElementById('cloudwords-result-container').innerHTML = '';
+    document.getElementById('cloudwords-text').focus();
+}
+
+        
+        
+        async function generateWordcloudCollection() {
+            const coleccion = document.getElementById('cloudwords-collection').value.trim();
+            const campo = document.getElementById('cloudwords-field').value.trim();
+            
+            if (!coleccion) {
+                showAlert('cloudwords-result', 'La colección es requerida', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithRefresh(`http://127.0.0.1:8000/cloudwords/collection/${coleccion}?campo=${encodeURIComponent(campo)}`, {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                // Descargar la imagen de nube de palabras
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `nube_palabras_${coleccion}_${campo}.png`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+                showAlert('cloudwords-result', 'Nube de palabras generada exitosamente', 'success');
+            } catch (error) {
+                console.error('Error al generar nube de palabras:', error);
+                showAlert('cloudwords-result', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Nuevas funciones para Lematización
+        async function lemmatizeText() {
+            const text = document.getElementById('lemmatize-text').value.trim();
+            const language = document.getElementById('lemmatize-language').value;
+            const removeStopwords = document.getElementById('lemmatize-remove-stopwords').checked;
+            
+            if (!text) {
+                showAlert('lemmatize-result', 'El texto es requerido', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithRefresh('http://127.0.0.1:8000/lemmatization/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text,
+                        language,
+                        remove_stopwords: removeStopwords
+                    })
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                const result = await response.json();
+                
+                // Mostrar resultado
+                const resultContainer = document.getElementById('lemmatize-result-container');
+                resultContainer.innerHTML = `
+                    <div class="producto-card">
+                        <p><strong>Texto original (${result.tokens_count} tokens):</strong></p>
+                        <p>${result.original_text}</p>
+                        <hr style="border-color: #0ef; margin: 10px 0;">
+                        <p><strong>Texto lematizado:</strong></p>
+                        <p>${result.lemmatized_text}</p>
+                    </div>
+                `;
+                
+                showAlert('lemmatize-result', 'Texto lematizado exitosamente', 'success');
+            } catch (error) {
+                console.error('Error al lematizar texto:', error);
+                showAlert('lemmatize-result', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function analyzeCollection() {
+            const coleccion = document.getElementById('lemmatize-collection').value.trim();
+            const campo = document.getElementById('lemmatize-field').value.trim();
+            const language = document.getElementById('lemmatize-collection-language').value;
+            const removeStopwords = document.getElementById('lemmatize-collection-remove-stopwords').checked;
+            
+            if (!coleccion) {
+                showAlert('lemmatize-collection-result', 'La colección es requerida', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithRefresh(`http://127.0.0.1:8000/lemmatization/analyze-collection?coleccion=${encodeURIComponent(coleccion)}&campo=${encodeURIComponent(campo)}&language=${encodeURIComponent(language)}&remove_stopwords=${removeStopwords}`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                const result = await response.json();
+                
+                // Mostrar resultado
+                const resultContainer = document.getElementById('lemmatize-collection-result-container');
+                resultContainer.innerHTML = `
+                    <div class="producto-card">
+                        <p><strong>Colección:</strong> ${result.coleccion}</p>
+                        <p><strong>Campo:</strong> ${result.campo}</p>
+                        <p><strong>Total de documentos:</strong> ${result.total_documentos}</p>
+                        <p><strong>Documentos con texto:</strong> ${result.documentos_con_texto}</p>
+                        <p><strong>Total de tokens originales:</strong> ${result.total_tokens_originales}</p>
+                        <p><strong>Total de tokens lematizados:</strong> ${result.total_tokens_lematizados}</p>
+                        <p><strong>Reducción:</strong> ${result.reduccion_porcentaje}%</p>
+                        <p><strong>Tokens únicos originales:</strong> ${result.tokens_unicos_originales}</p>
+                        <p><strong>Tokens únicos lematizados:</strong> ${result.tokens_unicos_lematizados}</p>
+                        <p><strong>Muestra de tokens originales:</strong> ${result.muestra_tokens_originales.join(', ')}</p>
+                        <p><strong>Muestra de tokens lematizados:</strong> ${result.muestra_tokens_lematizados.join(', ')}</p>
+                    </div>
+                `;
+                
+                showAlert('lemmatize-collection-result', 'Colección analizada exitosamente', 'success');
+            } catch (error) {
+                console.error('Error al analizar colección:', error);
+                showAlert('lemmatize-collection-result', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Nuevas funciones para RPA
+        async function checkRPADependencies() {
+            try {
+                const response = await fetchWithRefresh('http://127.0.0.1:8000/rpa/check-dependencies', {
+                    method: 'GET'
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                const result = await response.json();
+                
+                // Mostrar resultado
+                const resultContainer = document.getElementById('rpa-dependencies-result');
+                resultContainer.innerHTML = `
+                    <div class="producto-card">
+                        <p><strong>Estado:</strong> ${result.status}</p>
+                        <p><strong>Python:</strong> ${result.python_version}</p>
+                        <p><strong>Chrome:</strong> ${result.chrome_path || 'No encontrado'}</p>
+                        <p><strong>ChromeDriver:</strong> ${result.chromedriver_path || 'No encontrado'}</p>
+                        <p><strong>Selenium:</strong> ${result.selenium_version}</p>
+                    </div>
+                `;
+                
+                showAlert('rpa-result', 'Dependencias verificadas exitosamente', 'success');
+            } catch (error) {
+                console.error('Error al verificar dependencias:', error);
+                showAlert('rpa-result', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function scrapeWebsiteRPA() {
+            const url = document.getElementById('rpa-url').value.trim();
+            const waitTime = parseInt(document.getElementById('rpa-wait-time').value) || 10;
+            
+            if (!url) {
+                showAlert('rpa-result', 'La URL es requerida', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithRefresh('http://127.0.0.1:8000/rpa/scrape', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url,
+                        wait_time: waitTime
+                    })
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                // Descargar el archivo Excel
+                const blob = await response.blob();
+                const filename = response.headers.get('Content-Disposition').split('filename=')[1].replace(/"/g, '');
+                const url_obj = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url_obj;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url_obj);
+                
+                showAlert('rpa-result', 'Scraping automatizado completado exitosamente', 'success');
+            } catch (error) {
+                console.error('Error en scraping automatizado:', error);
+                showAlert('rpa-result', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function executeDataEntry() {
+            const collectionName = document.getElementById('rpa-collection-name').value.trim();
+            const dataSource = document.getElementById('rpa-data-source').value.trim();
+            
+            if (!collectionName || !dataSource) {
+                showAlert('rpa-data-entry-result', 'La colección y la fuente de datos son requeridas', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithRefresh('http://127.0.0.1:8000/rpa/data-entry', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        collection_name: collectionName,
+                        data_source: dataSource
+                    })
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                const result = await response.json();
+                
+                // Mostrar resultado
+                showAlert('rpa-data-entry-result', `Datos insertados exitosamente: ${result.records_inserted} registros`, 'success');
+            } catch (error) {
+                console.error('Error en entrada de datos:', error);
+                showAlert('rpa-data-entry-result', `Error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function scheduleDataSync() {
+            const sourceCollection = document.getElementById('rpa-source-collection').value.trim();
+            const targetCollection = document.getElementById('rpa-target-collection').value.trim();
+            const syncInterval = parseInt(document.getElementById('rpa-sync-interval').value) || 60;
+            
+            if (!sourceCollection || !targetCollection) {
+                showAlert('rpa-data-sync-result', 'Las colecciones de origen y destino son requeridas', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetchWithRefresh('http://127.0.0.1:8000/rpa/data-sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source_collection: sourceCollection,
+                        target_collection: targetCollection,
+                        sync_interval_minutes: syncInterval
+                    })
+                });
+                
+                if (!response.ok) throw new Error(await response.text());
+                
+                const result = await response.json();
+                
+                // Mostrar resultado
+                showAlert('rpa-data-sync-result', `Sincronización programada exitosamente: ID de tarea ${result.task_id}`, 'success');
+            } catch (error) {
+                console.error('Error al programar sincronización:', error);
+                showAlert('rpa-data-sync-result', `Error: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
